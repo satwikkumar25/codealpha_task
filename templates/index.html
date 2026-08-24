@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FAQ Chatbot</title>
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #eef1f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .chat-container {
+        width: 420px;
+        height: 620px;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .chat-header {
+        background: #4a5568;
+        color: white;
+        padding: 18px;
+        font-size: 18px;
+        font-weight: 600;
+        text-align: center;
+    }
+    .chat-messages {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: #f9fafb;
+    }
+    .message {
+        max-width: 78%;
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    .user-message {
+        align-self: flex-end;
+        background: #4a5568;
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
+    .bot-message {
+        align-self: flex-start;
+        background: #e2e8f0;
+        color: #1a202c;
+        border-bottom-left-radius: 2px;
+    }
+    .chat-input {
+        display: flex;
+        border-top: 1px solid #e2e8f0;
+        padding: 12px;
+        gap: 8px;
+    }
+    .chat-input input {
+        flex: 1;
+        padding: 10px 14px;
+        border-radius: 20px;
+        border: 1px solid #cbd5e0;
+        outline: none;
+        font-size: 14px;
+    }
+    .chat-input button {
+        background: #4a5568;
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .chat-input button:hover { background: #2d3748; }
+</style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">💬 FAQ Chatbot</div>
+    <div class="chat-messages" id="chat-messages">
+        <div class="message bot-message">Hi! Ask me anything about orders, shipping, returns, or payments.</div>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="user-input" placeholder="Type your question..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Show user's message
+    chatMessages.innerHTML += `<div class="message user-message">${escapeHtml(message)}</div>`;
+    input.value = '';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Call backend
+    const response = await fetch('/get_response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+    });
+    const data = await response.json();
+
+    chatMessages.innerHTML += `<div class="message bot-message">${escapeHtml(data.answer)}</div>`;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
